@@ -1,0 +1,47 @@
+{
+  "name": "generate-node",
+  "description": "Generate a vanilla node.js project.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/jonschlinkert/generate-node",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "repository": "jonschlinkert/generate-node",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/generate-node/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "ansi-bold": "^0.1.1",
+    "ansi-cyan": "^0.1.1",
+    "ansi-gray": "^0.1.1",
+    "ansi-red": "^0.1.1",
+    "ansi-yellow": "^0.1.1",
+    "component-emitter": "^1.2.0",
+    "extend-shallow": "^2.0.1",
+    "gitty": "^3.2.3",
+    "glob": "^5.0.15",
+    "parse-gitignore": "^0.2.0",
+    "through2": "^2.0.0"
+  },
+  "verb": {
+    "related": {
+      "list": []
+    }
+  },
+  "devDependencies": {
+    "ansi-green": "^0.1.1",
+    "error-symbol": "^0.1.0",
+    "info-symbol": "^0.1.0",
+    "success-symbol": "^0.1.0",
+    "warning-symbol": "^0.1.0"
+  }
+}

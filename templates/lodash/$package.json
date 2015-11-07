@@ -1,0 +1,30 @@
+{
+  "name": "<%= name = ask('What is your name', {force: true}) %>",
+  "description": "<%= description %>",
+  "version": "0.1.0",
+  "homepage": "https://github.com/<%= username %>/<%= name %>",
+  "author": "<%= author.name %> (<%= author.url %>)",
+  "repository": "<%= username %>/<%= name %>",
+  "bugs": {
+    "url": "https://github.com/<%= username %>/<%= name %>/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*"
+  },
+  "keywords": []
+}
+
+"<%= name = (typeof foo !== 'undefined' ? foo : '') %>"
