@@ -1,7 +1,7 @@
 /*!
- * foo <https://github.com/quux/foo>
+ * <%= name %> <https://github.com/<%= author.username %>/<%= name %>>
  *
- * Copyright (c) b, bar.
+ * Copyright (c) <%= year %>, <%= author.name %>.
  * Licensed under the MIT License.
  */
 

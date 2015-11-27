@@ -2,11 +2,11 @@
   "name": "<%= name %>",
   "description": "<%= description %>",
   "version": "0.1.0",
-  "homepage": "https://github.com/<%= username %>/<%= name %>",
+  "homepage": "https://github.com/<%= author.username %>/<%= name %>",
   "author": "<%= author.name %> (<%= author.url %>)",
-  "repository": "<%= username %>/<%= name %>",
+  "repository": "<%= author.username %>/<%= name %>",
   "bugs": {
-    "url": "https://github.com/<%= username %>/<%= name %>/issues"
+    "url": "https://github.com/<%= author.username %>/<%= name %>/issues"
   },
   "license": "MIT",
   "files": [
