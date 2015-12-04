@@ -21,8 +21,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "mocha": "*",
-    "should": "*"
+    "mocha": "*"
   },
   "keywords": []
 }
