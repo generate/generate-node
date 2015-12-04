@@ -31,7 +31,6 @@ require('word-wrap', 'wrap');
 require('set-value', 'set');
 require('project-name');
 require('namify');
-require('minimist');
 require('chalk');
 
 /**
