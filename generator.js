@@ -9,6 +9,12 @@ module.exports = function(app, base, env) {
   var questions = utils.questions(argv);
 
   /**
+   * Add `year` to the context
+   */
+
+  this.data({year: new Date().getFullYear()});
+
+  /**
    * Questions (answers are used to populate templates)
    */
 
@@ -40,7 +46,9 @@ module.exports = function(app, base, env) {
 
       app.toStream('templates')
         .pipe(getAnswers(dest, answers))
+        .on('error', cb)
         .pipe(app.renderFile('text'))
+        .on('error', cb)
         .pipe(app.dest(rename({
           dest: dest
         })))
@@ -49,15 +57,7 @@ module.exports = function(app, base, env) {
     });
   });
 
-  /**
-   * Prompt the user to run the `git` generator
-   */
-
-  app.task('git', function(cb) {
-    base.runGenerators('git', cb);
-  });
-
-  app.task('default', ['files', 'git']);
+  app.task('default', ['files']);
 };
 
 /**
