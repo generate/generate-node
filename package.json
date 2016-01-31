@@ -10,19 +10,19 @@
   },
   "license": "MIT",
   "files": [
-    "generate.js",
+    "generator.js",
     "templates/",
     "utils.js"
   ],
-  "preferGlobal": true,
-  "main": "generate.js",
   "engines": {
     "node": ">=0.10.0"
   },
   "scripts": {
     "test": "mocha"
   },
+  "preferGlobal": true,
   "dependencies": {
+    "async": "^1.5.2",
     "chalk": "^1.1.1",
     "extend-shallow": "^2.0.1",
     "lazy-cache": "^0.2.4",
@@ -35,13 +35,15 @@
     "word-wrap": "^1.1.0"
   },
   "keywords": [
-    "generator",
     "generate",
+    "generator",
     "node"
   ],
   "verb": {
     "related": {
-      "list": []
+      "list": [
+        "generate"
+      ]
     }
   }
 }
