@@ -1,7 +1,7 @@
 ## Usage
 
 ```js
-var <%= varname %> = require('{%= name %}');
+var <%= ask('alias') %> = require('{%= name %}');
 ```
 
 ## API

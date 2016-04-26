@@ -1,0 +1,36 @@
+{
+  "name": "<%= ask('name') %>",
+  "description": "<%= ask('description') %>",
+  "version": "<%= ask('version') %>",
+  "homepage": "https://github.com/<%= ask('owner') %>/<%= ask('name') %>",
+  "author": "<%= ask('author.name') %> (<%= ask('author.url') %>)",
+  "repository": "<%= ask('owner') %>/<%= ask('name') %>",
+  "bugs": {
+    "url": "https://github.com/<%= ask('owner') %>/<%= ask('name') %>/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "gulp-format-md": "*",
+    "mocha": "*"
+  },
+  "keywords": [],
+  "verb": {
+    "layout": "default",
+    "plugins": ["gulp-format-md"],
+    "related": {
+      "list": []
+    },
+    "reflinks": ["verb"]
+  }
+}
