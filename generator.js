@@ -20,12 +20,19 @@ module.exports = function plugin(app, base) {
 
   app.use(require('generate-collections'));
   app.use(require('generate-defaults'));
-  app.use(require('generate-license'));
   app.use(utils.conflicts());
   app.use(utils.questions());
   app.use(utils.rename());
   app.use(utils.files());
   app.use(utils.npm());
+
+  /**
+   * Sub-generators
+   */
+
+  app.register('mocha', require('generate-mocha'));
+  app.register('license', require('generate-license'));
+  app.register('git', require('generate-git'));
 
   /**
    * Task-prompt
@@ -64,8 +71,30 @@ module.exports = function plugin(app, base) {
   });
 
   /**
-   * Runs the `default` task from [generate-git][] to initialize a git repository.
-   * Also `git add`s and does first commit.
+   * Add an arbitrary newline before or after user prompts
+   */
+
+  app.task('newline', { silent: true }, function*() {
+    console.log();
+  });
+
+  /**
+   * Generate a `MIT` license file. Runs the `default` task from [generate-license][].
+   *
+   * ```sh
+   * $ gen node:mit
+   * ```
+   * @name mit
+   * @api public
+   */
+
+  app.task('mit', function(cb) {
+    app.generate('license', cb);
+  });
+
+  /**
+   * Initialize a git repository, and add files and first commit.
+   * Runs the `default` task from [generate-git][].
    *
    * ```sh
    * $ gen node:git
@@ -75,11 +104,11 @@ module.exports = function plugin(app, base) {
    */
 
   app.task('git', function(cb) {
-    app.generate('generate-git', cb);
+    app.generate('git', cb);
   });
 
   /**
-   * Generate a mocha unit test file.
+   * Generate a mocha unit test file. Runs the `default` task from [generate-mocha][].
    *
    * ```sh
    * $ gen node:mocha
@@ -89,7 +118,7 @@ module.exports = function plugin(app, base) {
    */
 
   app.task('mocha', function(cb) {
-    app.generate('generate-mocha', cb);
+    app.generate('mocha', cb);
   });
 
   /**
@@ -180,7 +209,7 @@ module.exports = function plugin(app, base) {
    */
 
   app.confirm('mocha', 'Want to add mocha unit tests?');
-  app.task('prompt-mocha', prompt.confirm('mocha', ['generate-mocha']));
+  app.task('prompt-mocha', ['newline'], prompt.confirm('mocha', ['mocha']));
 
   /**
    * Prompt to initialize a git repository (also does git add and first commit).
@@ -194,7 +223,7 @@ module.exports = function plugin(app, base) {
    */
 
   app.confirm('git', 'Want initialize a git repository?');
-  app.task('prompt-git', prompt.confirm('git', ['generate-git:ask']));
+  app.task('prompt-git', ['newline'], prompt.confirm('git', ['git:ask']));
 
   /**
    * Prompt to install the latest `devDependencies` in package.json.
@@ -208,7 +237,7 @@ module.exports = function plugin(app, base) {
 
   app.task('prompt-npm', function(cb) {
     app.confirm('npm', 'Want to install npm dependencies now?');
-    app.ask('npm', {save: false}, function(err, answers) {
+    app.ask('npm', {save: false}, ['newline'], function(err, answers) {
       if (err) return cb(err);
       if (answers.npm === true) {
         app.npm.latest(cb);
