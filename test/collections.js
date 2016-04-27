@@ -8,7 +8,7 @@ var app;
 
 describe('generate-node', function() {
   beforeEach(function() {
-    app = generate();
+    app = generate({cli: true, silent: true});
   });
 
   describe('plugin', function() {
