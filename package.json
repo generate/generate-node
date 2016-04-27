@@ -10,6 +10,7 @@
   },
   "license": "MIT",
   "files": [
+    "generator.js",
     "index.js",
     "lib"
   ],
@@ -81,8 +82,8 @@
     "related": {
       "list": [
         "generate",
-        "generate-license",
         "generate-git",
+        "generate-license",
         "generate-mocha"
       ]
     }
