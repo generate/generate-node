@@ -44,7 +44,7 @@ module.exports = function plugin(app, base) {
    * Pre-load templates (needs to be done after collections are created)
    */
 
-  app.task('templates', { silent: true }, ['mit'], function(cb) {
+  app.task('templates', { silent: true }, function(cb) {
     app.debug('loading templates');
     app.templates('*', {
       cwd: path.resolve(__dirname, 'templates'),
@@ -60,7 +60,7 @@ module.exports = function plugin(app, base) {
    * Write files to the user's cwd or chosen directory
    */
 
-  app.task('node', ['templates', 'dest'], function() {
+  app.task('node', ['dest', 'templates', 'mit'], function() {
     app.debug('generating files from templates');
     var dest = app.options.dest || app.cwd;
 
@@ -209,7 +209,7 @@ module.exports = function plugin(app, base) {
    */
 
   app.confirm('mocha', 'Want to add mocha unit tests?');
-  app.task('prompt-mocha', ['newline'], prompt.confirm('mocha', ['mocha']));
+  app.task('prompt-mocha', prompt.confirm('mocha', ['mocha']));
 
   /**
    * Prompt to initialize a git repository (also does git add and first commit).
@@ -223,7 +223,7 @@ module.exports = function plugin(app, base) {
    */
 
   app.confirm('git', 'Want initialize a git repository?');
-  app.task('prompt-git', ['newline'], prompt.confirm('git', ['git:ask']));
+  app.task('prompt-git', prompt.confirm('git', ['git:fc']));
 
   /**
    * Prompt to install the latest `devDependencies` in package.json.
@@ -237,7 +237,7 @@ module.exports = function plugin(app, base) {
 
   app.task('prompt-npm', function(cb) {
     app.confirm('npm', 'Want to install npm dependencies now?');
-    app.ask('npm', {save: false}, ['newline'], function(err, answers) {
+    app.ask('npm', {save: false}, function(err, answers) {
       if (err) return cb(err);
       if (answers.npm === true) {
         app.npm.latest(cb);
@@ -259,7 +259,7 @@ module.exports = function plugin(app, base) {
    * @api public
    */
 
-  app.task('default', ['node', 'prompt-mocha', 'prompt-npm', 'prompt-git']);
+  app.task('default', ['node', 'mit', 'prompt-mocha', 'prompt-npm', 'prompt-git']);
   return plugin;
 };
 
