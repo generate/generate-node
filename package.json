@@ -1,7 +1,7 @@
 {
   "name": "generate-node",
   "description": "Generate a node.js project, with everything you need to begin writing code and easily publish the project to npm.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "homepage": "https://github.com/generate/generate-node",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
   "repository": "generate/generate-node",
@@ -12,7 +12,8 @@
   "files": [
     "generator.js",
     "index.js",
-    "lib"
+    "lib",
+    "templates"
   ],
   "main": "index.js",
   "engines": {
@@ -67,9 +68,9 @@
     "reflinks": [
       "generate",
       "generate-git",
+      "generate-license",
       "generate-mocha",
-      "verb",
-      "generate-license"
+      "verb"
     ],
     "run": true,
     "toc": false,
