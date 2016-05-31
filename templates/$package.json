@@ -1,12 +1,12 @@
 {
-  "name": "<%= ask('name') %>",
-  "description": "<%= ask('description') %>",
-  "version": "<%= ask('version') %>",
-  "homepage": "https://github.com/<%= ask('owner') %>/<%= ask('name') %>",
+  "name": "<%= ask('project.name') %>",
+  "description": "<%= ask('project.description') %>",
+  "version": "<%= ask('project.version') %>",
+  "homepage": "https://github.com/<%= ask('project.owner') %>/<%= ask('project.name') %>",
   "author": "<%= ask('author.name') %> (<%= ask('author.url') %>)",
-  "repository": "<%= ask('owner') %>/<%= ask('name') %>",
+  "repository": "<%= ask('project.owner') %>/<%= ask('project.name') %>",
   "bugs": {
-    "url": "https://github.com/<%= ask('owner') %>/<%= ask('name') %>/issues"
+    "url": "https://github.com/<%= ask('project.owner') %>/<%= ask('project.name') %>/issues"
   },
   "license": "MIT",
   "files": [
