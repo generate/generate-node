@@ -114,57 +114,6 @@ describe('usage with assemble', function() {
       });
     });
 
-    it('should set layout to `null` on partials with "default" defined', function(cb) {
-      app.generator('foo', function(app) {
-        app.extendWith(generator);
-        app.engine('*', require('engine-base'));
-
-        app.task('render', function(cb) {
-          app.layout('default', {content: '{% body %}'});
-          app.include('overview.md', {content: 'this is overview', layout: 'default'});
-          app.file('foo.md', {content: 'this is <%= include("overview.md") %>'});
-
-          app.toStream('files')
-            .pipe(app.renderFile('*'))
-            .pipe(app.dest('test/actual'))
-            .on('end', cb);
-        });
-
-        app.build('render', function(err) {
-          if (err) return cb(err);
-          assert.equal(app.files.getView('foo').layout, 'empty');
-          assert.equal(app.includes.getView('overview').layout, null);
-          cb();
-        });
-      });
-    });
-
-    it('should set `partialLayout` on view.layout', function(cb) {
-      app.generator('foo', function(app) {
-        app.extendWith(generator);
-        app.engine('*', require('engine-base'));
-
-        app.task('render', function(cb) {
-          app.layout('default.md', {content: '{% body %}'});
-          app.layout('whatever.md', {content: '{% body %}'});
-          app.include('overview.md', {content: 'this is overview', partialLayout: 'whatever'});
-          app.file('foo.md', {content: 'this is <%= include("overview.md") %>'});
-
-          app.toStream('files')
-            .pipe(app.renderFile('*'))
-            .pipe(app.dest('test/actual'))
-            .on('end', cb);
-        });
-
-        app.build('render', function(err) {
-          if (err) return cb(err);
-          assert.equal(app.files.getView('foo').layout, 'empty');
-          assert.equal(app.includes.getView('overview').layout, 'whatever');
-          cb();
-        });
-      });
-    });
-
     it('should set layout to `empty` on renderable templates with no layout', function(cb) {
       app.generator('foo', function(app) {
         app.extendWith(generator);

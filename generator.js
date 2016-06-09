@@ -3,15 +3,26 @@
 var path = require('path');
 var utils = require('./lib/utils');
 
-module.exports = function plugin(app, base) {
-  if (utils.isRegistered(app, 'node')) return;
+module.exports = function plugin(app, base, env, options) {
+  if (!utils.isValid(app, 'generate-node')) return;
+  var argv = base.get('cache.argv');
 
   /**
-   * Options (merge `base` instance options onto our
-   * generator's options)
+   * Config store for user-defined, generator-specific defaults
    */
 
-  app.option(base.options);
+  var store = new utils.DataStore('generate-node');
+
+  /**
+   * Add task-prompts
+   */
+
+  var prompt = utils.prompts(app);
+
+  /**
+   * Options (ensure delimiters are what we need)
+   */
+
   app.option({delims: ['<%', '%>']});
 
   /**
@@ -20,14 +31,11 @@ module.exports = function plugin(app, base) {
 
   app.use(require('generate-collections'));
   app.use(require('generate-defaults'));
-  app.use(utils.conflicts());
   app.use(utils.questions());
   app.use(utils.rename());
-  app.use(utils.files());
-  app.use(utils.npm());
 
   /**
-   * Sub-generators
+   * Register sub-generators
    */
 
   app.register('mocha', require('generate-mocha'));
@@ -35,47 +43,26 @@ module.exports = function plugin(app, base) {
   app.register('git', require('generate-git'));
 
   /**
-   * Task-prompt
+   * Middleware for renaming files from templates to their actual destination names.
    */
 
-  var prompt = utils.prompts(app);
+  app.preWrite(/./, function(file, next) {
+    file.basename = file.basename.replace(/^_/, '.').replace(/^\$/, '');
+    next();
+  });
 
   /**
-   * Pre-load templates (needs to be done after collections are created)
+   * Listeners
    */
 
-  app.task('templates', { silent: true }, function(cb) {
-    app.debug('loading templates');
-    app.templates('*', {
-      cwd: path.resolve(__dirname, 'templates'),
-      renameKey: function(key, file) {
-        return file ? file.basename : path.basename(key);
+  app.on('ask', function(answerVal, answerKey, question) {
+    if (typeof answerVal === 'undefined') {
+      var segs = answerKey.split('author.');
+      if (segs.length > 1) {
+        app.questions.answers[answerKey] = app.common.get(segs.pop());
+        console.log(app.questions.answers[answerKey]);
       }
-    });
-    app.debug('loaded templates');
-    cb();
-  });
-
-  /**
-   * Write files to the user's cwd or chosen directory
-   */
-
-  app.task('node', ['dest', 'templates', 'mit'], function() {
-    app.debug('generating files from templates');
-    var dest = app.options.dest || app.cwd;
-
-    return app.toStream('templates', filter(app.options))
-      .pipe(app.renderFile('*', getAlias(app)))
-      .pipe(app.conflicts(dest))
-      .pipe(app.dest(dest));
-  });
-
-  /**
-   * Add an arbitrary newline before or after user prompts
-   */
-
-  app.task('newline', { silent: true }, function*() {
-    console.log();
+    }
   });
 
   /**
@@ -88,7 +75,7 @@ module.exports = function plugin(app, base) {
    * @api public
    */
 
-  app.task('mit', function(cb) {
+  app.task('license', function(cb) {
     app.generate('license', cb);
   });
 
@@ -103,8 +90,8 @@ module.exports = function plugin(app, base) {
    * @api public
    */
 
-  app.task('git', function(cb) {
-    app.generate('git', cb);
+  app.task('first-commit', function(cb) {
+    app.generate('generate-git:first-commit', cb);
   });
 
   /**
@@ -118,11 +105,11 @@ module.exports = function plugin(app, base) {
    */
 
   app.task('mocha', function(cb) {
-    app.generate('mocha', cb);
+    app.generate('generate-mocha:mocha', app.options, cb);
   });
 
   /**
-   * Install the latest `devDependencies` in package.json.
+   * Install the latest `dependencies` and `devDependencies` in package.json.
    *
    * ```sh
    * $ gen node:npm
@@ -132,29 +119,14 @@ module.exports = function plugin(app, base) {
    */
 
   app.task('npm', function(cb) {
-    app.npm.latest(cb);
-  });
-
-  /**
-   * Prompt the user and use answers as context in templates
-   *
-   * ```sh
-   * $ gen node:ask
-   * ```
-   * @name ask
-   * @api public
-   */
-
-  app.task('ask', function(cb) {
-    app.ask(function(err, answers) {
+    app.npm.devDependencies(function(err) {
       if (err) return cb(err);
-      app.data(answers);
-      cb();
+      app.npm.dependencies(cb);
     });
   });
 
   /**
-   * Prompt the user to choose which tasks to run.
+   * Asks you to choose which tasks to run.
    *
    * ```sh
    * $ gen node:tasks
@@ -166,40 +138,32 @@ module.exports = function plugin(app, base) {
   app.task('tasks', prompt.chooseTasks('Choose tasks to run:'));
 
   /**
-   * Prompt the user to choose which files to write to disk.
+   * Prompt the user and pass answers to rendering engine to use as context
+   * in templates. Specify questions to ask with the `--ask` flag. See
+   * [common-questions][] for the complete list of available built-in questions.
    *
    * ```sh
-   * $ gen node:files
+   * $ gen node:prompt
+   * # ask all `author` questions
+   * $ gen node:prompt --ask=author
+   * # ask `author.name`
+   * $ gen node:prompt --ask=author.name
    * ```
-   * @name files
+   * @name prompt
    * @api public
    */
 
-  app.task('files', ['templates', 'dest'], function(cb) {
-    app.chooseFiles(app.options, cb);
-  });
-
-  /**
-   * Prompts the user for the `dest` to use. This is called by the `default` task.
-   *
-   * ```sh
-   * $ gen node:dest
-   * ```
-   * @name dest
-   * @api public
-   */
-
-  app.task('dest', { silent: true }, function(cb) {
-    app.question('dest', 'Destination directory?', {default: '.'});
-    app.ask('dest', {save: false}, function(err, answers) {
+  app.task('prompt-data', function(cb) {
+    app.ask(argv.ask || ['load-project', 'author'], function(err, answers) {
       if (err) return cb(err);
-      app.option('dest', answers.dest);
+      app.data(answers);
       cb();
     });
   });
 
   /**
-   * Prompt to generate mocha unit tests. Runs the `default` task from [generate-mocha][].
+   * Asks if you'd like to generate mocha unit tests. Runs the `default` task
+   * from [generate-mocha][].
    *
    * ```sh
    * $ gen node:prompt-mocha
@@ -208,12 +172,12 @@ module.exports = function plugin(app, base) {
    * @api public
    */
 
-  app.confirm('mocha', 'Want to add mocha unit tests?');
-  app.task('prompt-mocha', prompt.confirm('mocha', ['mocha']));
+  app.question('mocha', 'Want to add mocha unit tests?', {type: 'confirm'});
+  app.task('prompt-mocha', {silent: true}, prompt.confirm('mocha', ['mocha']));
 
   /**
-   * Prompt to initialize a git repository (also does git add and first commit).
-   * Runs the `ask` task from [generate-git][].
+   * Asks if you'd like to initialize a git repository (also does git `add` and
+   * first commit). If true the [first-commit]() task is run.
    *
    * ```sh
    * $ gen node:prompt-git
@@ -222,11 +186,12 @@ module.exports = function plugin(app, base) {
    * @api public
    */
 
-  app.confirm('git', 'Want initialize a git repository?');
-  app.task('prompt-git', prompt.confirm('git', ['git:fc']));
+  app.question('git', 'Want initialize a git repository?', {type: 'confirm'});
+  app.task('prompt-git', {silent: true}, prompt.confirm('git', ['first-commit']));
 
   /**
-   * Prompt to install the latest `devDependencies` in package.json.
+   * Asks if you'd like install the latest `devDependencies` in package.json.
+   * If true, the [npm](#npm) task is run.
    *
    * ```sh
    * $ gen node:prompt-npm
@@ -235,31 +200,119 @@ module.exports = function plugin(app, base) {
    * @api public
    */
 
-  app.task('prompt-npm', function(cb) {
-    app.confirm('npm', 'Want to install npm dependencies now?');
-    app.ask('npm', {save: false}, function(err, answers) {
+  app.question('npm', 'Want to install npm dependencies now?', {type: 'confirm'});
+  app.task('prompt-npm', {silent: true}, prompt.confirm('npm', ['npm']));
+
+  /**
+   * Asks if you want to save your choices from user prompts and automatically use
+   * them without asking again the next time the generator is run. If you change your
+   * mind, just run `gen node:choices` and you'll be prompted again.
+   *
+   * ```sh
+   * $ gen node:choices
+   * ```
+   * @name choices
+   * @api public
+   */
+
+  app.task('node-choices', {silent: true}, function(cb) {
+    app.question('choices', 'Want to use these choices next time?', {type: 'confirm'});
+    app.ask('choices', { save: false }, function(err, answers) {
       if (err) return cb(err);
-      if (answers.npm === true) {
-        app.npm.latest(cb);
-      } else {
-        cb();
-      }
+      store.set(answers);
+      cb();
     });
   });
 
   /**
-   * Runs the `default` task to generate complete a node.js project, with
-   * all of the necessary files included. Runs the [prompt-mocha](), [prompt-npm](), and
-   * [prompt-git]() tasks as task-dependencies.
+   * Asks if you want to use the same "post-generate" choices next time this generator
+   * is run. If you change your mind, just run `gen node:choices` and you'll be prompted
+   * again.
+   *
+   * If `false`, the [prompt-mocha](), [prompt-npm](), and [prompt-git]() tasks will be
+   * run after files are generated then next time the generator is run.
+   *
+   * If `true`, the [mocha](), [npm](), and [git]() tasks will be run (and you will not
+   * be prompted) after files are generated then next time the generator is run.
+   *
+   * ```sh
+   * $ gen node:post-generate
+   * ```
+   * @name post-generate
+   * @api public
+   */
+
+  app.task('generate-project', {silent: true}, function(cb) {
+    var choices = store.get('choices') || options.choices;
+
+    // user wants to skip prompts
+    if (choices === true) {
+      app.build(['license', 'mocha', 'npm', 'first-commit'], cb);
+
+    // user wants to be prompted (don't ask about choices again)
+    } else if (choices === false) {
+      app.build(['license', 'prompt-!(data)'], cb);
+
+    // user hasn't been asked yet
+    } else {
+      app.build(['license', 'prompt-!(data)', 'node-choices'], cb);
+    }
+  });
+
+  /**
+   * Pre-load templates (needs to be done after collections are created)
+   */
+
+  app.task('templates', {silent: true}, function(cb) {
+    app.templates('*', {
+      cwd: path.resolve(__dirname, 'templates'),
+      renameKey: function(key, file) {
+        return file ? file.basename : path.basename(key);
+      }
+    });
+    cb();
+  });
+
+  /**
+   * Generate a complete a node.js project, with all of the necessary files included.
+   *
+   * _(Note that this task does not initialize a [git](#git) repository, generate [mocha]()
+   * unit tests or install [npm]() dependencies. If you want these things you can either
+   * run the [default task](#default), or run the tasks individually.)_
+   *
+   * ```sh
+   * $ gen node:project
+   * ```
+   * @name project
+   * @api public
+   */
+
+  app.task('load-project', ['templates'], function(cb) {
+    var dest = app.options.dest || app.cwd;
+
+    base.data(app.cache.data);
+
+    app.toStream('templates', filter(app.options))
+      .pipe(app.renderFile('*', app.cache.data))
+      .pipe(app.dest(dest))
+      .on('error', cb)
+      .on('end', cb);
+  });
+
+  /**
+   * Generate a complete node.js project, then optionally install npm dependecies,
+   * mocha unit tests, and initialize a git repository.
    *
    * ```sh
    * $ gen node
+   * # or
+   * $ gen node:default
    * ```
    * @name default
    * @api public
    */
 
-  app.task('default', ['node', 'mit', 'prompt-mocha', 'prompt-npm', 'prompt-git']);
+  app.task('default', {silent: true}, ['load-project', 'generate-project']);
   return plugin;
 };
 
@@ -277,11 +330,4 @@ function filter(opts) {
   return function() {
     return true;
   };
-}
-
-function getAlias(app) {
-  if (app.cache.data.alias) {
-    return {alias: app.cache.data.alias};
-  }
-  return {alias: app.cache.data.name};
 }
