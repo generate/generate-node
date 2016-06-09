@@ -1,14 +1,24 @@
 'use strict';
 
+process.env.GENERATE_CLI = true;
+
 require('mocha');
 var assert = require('assert');
-var generate = require('generate');
+var assemble = require('assemble');
+var cwd = require('base-cwd');
+var questions = require('base-questions');
+var generators = require('base-generators');
 var generator = require('..');
 var app;
 
-describe('generate-node', function() {
+describe('usage with assemble', function() {
+  this.slow(300);
+
   beforeEach(function() {
-    app = generate({cli: true, silent: true});
+    app = assemble({silent: true});
+    app.use(cwd());
+    app.use(questions());
+    app.use(generators());
   });
 
   describe('plugin', function() {
