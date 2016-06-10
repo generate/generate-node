@@ -1,10 +1,11 @@
 'use strict';
 
 var path = require('path');
+var generators = require('./lib/generators');
 var utils = require('./lib/utils');
 
 module.exports = function plugin(app, base) {
-  if (utils.isRegistered(app, 'node')) return;
+  if (!utils.isValid(app, 'generate-node')) return;
 
   /**
    * Options (merge `base` instance options onto our
@@ -18,21 +19,19 @@ module.exports = function plugin(app, base) {
    * Instance plugins
    */
 
-  app.use(require('generate-collections'));
-  app.use(require('generate-defaults'));
-  app.use(utils.conflicts());
+  app.use(generators.collections);
+  app.use(generators.defaults);
   app.use(utils.questions());
-  app.use(utils.rename());
   app.use(utils.files());
-  app.use(utils.npm());
+  app.use(utils.renameFile());
 
   /**
    * Sub-generators
    */
 
-  app.register('mocha', require('generate-mocha'));
-  app.register('license', require('generate-license'));
-  app.register('git', require('generate-git'));
+  app.register('mocha', generators.mocha);
+  app.register('license', generators.license);
+  app.register('git', generators.git);
 
   /**
    * Task-prompt
@@ -66,6 +65,7 @@ module.exports = function plugin(app, base) {
 
     return app.toStream('templates', filter(app.options))
       .pipe(app.renderFile('*', getAlias(app)))
+      .pipe(app.renameFile(dest))
       .pipe(app.conflicts(dest))
       .pipe(app.dest(dest));
   });
