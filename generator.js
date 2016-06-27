@@ -60,7 +60,6 @@ module.exports = function plugin(app, base, env, options) {
       var segs = answerKey.split('author.');
       if (segs.length > 1) {
         app.questions.answers[answerKey] = app.common.get(segs.pop());
-        console.log(app.questions.answers[answerKey]);
       }
     }
   });
@@ -91,7 +90,7 @@ module.exports = function plugin(app, base, env, options) {
    */
 
   app.task('first-commit', function(cb) {
-    app.generate('generate-git:first-commit', cb);
+    app.generate('git:first-commit', cb);
   });
 
   /**
@@ -105,7 +104,7 @@ module.exports = function plugin(app, base, env, options) {
    */
 
   app.task('mocha', function(cb) {
-    app.generate('generate-mocha:mocha', app.options, cb);
+    app.generate('mocha:mocha', app.options, cb);
   });
 
   /**
